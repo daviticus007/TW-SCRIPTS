@@ -9,6 +9,8 @@ var T=document.body.innerText||"",
     vm=(T.match(/Village:\s*([^\n]+)/)||[])[1]||"Village",
     cm=(T.match(/Location:\s*([0-9]{3}\|[0-9]{3})/)||[])[1]||"coords",
     src=location.href,
+    owner=prompt("Owner of "+vm+" • "+cm+":","")||"Owner not entered",
+    infoLine=owner+" • "+vm+" • "+cm+" • server/TWStats time",
     R=[],seen={},re=/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})\s+([\d,]+)\s+([+-]\d+)/g,m;
 while((m=re.exec(T))){
   var D=new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]),k=+D+"|"+m[6]+"|"+m[7];
@@ -67,9 +69,9 @@ function X(m){return L+m/1440*CW}
 var svg=['<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+h+'" viewBox="0 0 '+W+' '+h+'">'];
 svg.push('<rect width="100%" height="100%" fill="#fff"/>');
 
-svg.push('<text x="12" y="24" font-size="22" font-family="Arial" font-weight="700" fill="#111">Graph: Possible Sleep Intervals of Opponent</text>');
+svg.push('<text x="12" y="24" font-size="22" font-family="Arial" font-weight="700" fill="#111">Offline Activity Finder</text>');
 svg.push('<text x="12" y="44" font-size="11" font-family="Arial" font-style="italic" fill="#444">Source: '+esc(src)+'</text>');
-svg.push('<text x="12" y="64" font-size="13" font-family="Arial" fill="#333"><tspan font-weight="700">'+esc(vm)+' • '+esc(cm)+'</tspan><tspan font-weight="400"> • server/TWStats time</tspan></text>');
+svg.push('<text x="12" y="64" font-size="13" font-family="Arial" fill="#333"><tspan font-weight="700">'+esc(infoLine)+'</tspan></text>');
 
 if(B)svg.push('<rect x="'+X(B[0])+'" y="'+top+'" width="'+(X(B[1])-X(B[0]))+'" height="'+chartH+'" fill="rgba(80,180,100,.22)"/>');
 if(N)svg.push('<rect x="'+X(N[0])+'" y="'+top+'" width="'+(X(N[1])-X(N[0]))+'" height="'+chartH+'" fill="rgba(0,120,60,.28)"/>');
@@ -103,6 +105,7 @@ var strongText='Strongest overlap zone: '+(N?tm(N[0])+' - '+tm(N[1]):'none');
 svg.push('<text x="'+(L+500)+'" y="'+(sy+50)+'" font-size="13" font-family="Arial" font-weight="700" text-decoration="underline" fill="#111">'+strongText+'</text>');
 
 svg.push('<text x="'+(L+500)+'" y="'+(sy+76)+'" font-size="12" font-family="Arial" font-style="italic" fill="#444">Note: TWStats says timing can be off by up to 1.5 hours.</text>');
+svg.push('<text x="'+(L+500)+'" y="'+(sy+116)+'" font-size="13" font-family="Arial" font-weight="700" fill="#333">'+esc(infoLine)+'</text>');
 
 svg.push('<text x="'+(L+14)+'" y="'+(sy+78)+'" font-size="14" font-family="Arial" font-weight="700" fill="#111">Top 5 largest gaps</text>');
 top5.forEach((g,i)=>{
@@ -114,18 +117,18 @@ top5.forEach((g,i)=>{
 svg.push('</svg>');
 
 var svgText=svg.join("");
-var rep="TWStats Quiet-Gap Report\nVillage: "+vm+"\nCoords: "+cm+"\nSource: "+src+"\nRows: "+R.length+
+var rep="Offline Activity Finder\nOwner: "+owner+"\nVillage: "+vm+"\nCoords: "+cm+"\nSource: "+src+"\nRows: "+R.length+
 "\nBest repeated quiet zone: "+(B?tm(B[0])+"-"+tm(B[1]):"none")+
 "\nStrongest overlap zone: "+(N?tm(N[0])+"-"+tm(N[1]):"none")+
 "\n\nLargest gaps:\n"+
 topg.map((g,i)=>(i+1)+". "+Math.floor(g.m/60)+"h "+p(g.m%60)+"m  "+dt(g.a.d)+" -> "+dt(g.b.d)+"  next "+(g.b.chg>0?"+":"")+g.b.chg).join("\n")+
-"\n\nNote: TWStats says timing can be off by up to 1.5h.";
+"\n\nNote: TWStats says timing can be off by up to 1.5h.\n\n\n"+infoLine;
 
 var box=document.createElement("div");
 box.id=ID;
 box.style="position:fixed;z-index:999999;top:20px;left:20px;right:20px;bottom:20px;overflow:auto;background:#f8f8f8;border:2px solid #555;padding:12px;color:#111;font-family:Arial";
 box.innerHTML=
-  '<div style="font-size:22px;font-weight:bold">Graph: Possible Sleep Intervals of Opponent</div>'+
+  '<div style="font-size:22px;font-weight:bold">Offline Activity Finder</div>'+
   '<div style="font-size:13px;margin-top:4px">Showing quiet gaps of 4 hours or longer. Times are server/TWStats time.</div>'+
   '<div style="margin:8px 0"><button id="twc">Copy report</button> <button id="tws">Save Graph and Summary as SVG</button> <button id="twx">Close</button></div>'+
   '<div style="background:white;border:1px solid #aaa;padding:8px">'+svgText+'</div>'+
@@ -138,7 +141,7 @@ document.getElementById("tws").onclick=function(){
   var blob=new Blob([svgText],{type:"image/svg+xml;charset=utf-8"}),
       a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="TWStats_Quiet_Gap_"+safe(cm)+"_"+safe(vm)+".svg";
+  a.download="Offline_Activity_Finder_"+safe(owner)+"_"+safe(cm)+"_"+safe(vm)+".svg";
   document.body.appendChild(a);
   a.click();
   setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1000)
